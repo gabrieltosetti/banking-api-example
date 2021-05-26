@@ -72,4 +72,32 @@ class UserBankManager
 
         return;
     }
+
+    public function withdraw(float $value, Currency $currency = null)
+    {
+        if (!$value) {
+            throw new \Exception('Withdraw value not specified', 400);
+        }
+
+        $currencyBalance = $this->getDefaultCurrencyBalance();
+
+        if ($currency) {
+            $currencyBalance = $this->getCurrencyBalanceOrCreate($currency);
+        }
+
+        if ($currencyBalance->value < $value) {
+            throw new \Exception('Withdraw value is greater than you currency balance.');
+        }
+
+        $currencyBalance->value -= $value;
+        $currencyBalance->save();
+
+        return;
+    }
+
+    public function setDefaultCurrency(Currency $currency)
+    {
+        $this->bankAccount->default_currency_id = $currency->id;
+        $this->bankAccount->save();
+    }
 }

@@ -66,7 +66,22 @@ Route::get('/withdraw', function (Request $request) {
     $userAccount = \App\Models\UserAccount::find(1);
 
     $userBankManager = new \Utils\UserBankManager($userAccount);
-    $userBankManager->withdraw(100);
+    $userBankManager->withdraw(200, \App\Models\Currency::findByCode('BRL'));
 
-    return 'value deposited';
+    return 'amount withdrawn';
+});
+
+Route::get('/set-default-currency', function (Request $request) {
+    $userAccount = \App\Models\UserAccount::find(1);
+
+    $userBankManager = new \Utils\UserBankManager($userAccount);
+    $userBankManager->setDefaultCurrency(\App\Models\Currency::findByCode('BRL'));
+
+    return 'default currency changed';
+});
+
+Route::get('/show-balance', function (Request $request) {
+    $userAccount = \App\Models\UserAccount::find(1);
+
+    return $userAccount->currencyBalances();
 });
