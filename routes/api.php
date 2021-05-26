@@ -18,16 +18,16 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// =================================================
+// ||              Testing
+// =================================================
+
 Route::get('/create-user', function (Request $request) {
     // Create the user account
     $user = new \App\Models\UserAccount();
-    $user->name = 'teste';
-    $user->email = 'teste@example.com' . rand(999, 999999);
+    $user->name = 'test';
+    $user->email = 'test@example.com' . rand(999, 999999);
     $user->password = \Illuminate\Support\Facades\Hash::make('123');
-
-    // if (\Illuminate\Support\Facades\Hash::check('plain-text', $hashedPassword)) {
-    //     // The passwords match...
-    // }
 
     $user->save();
 
