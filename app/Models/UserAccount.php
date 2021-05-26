@@ -13,9 +13,4 @@ class UserAccount extends Model
     {
         return $this->hasOne(BankAccount::class, 'user_account_id', 'id');
     }
-
-    public function currencyBalances()
-    {
-        return $this->bankAccount->currencyBalances;
-    }
 }

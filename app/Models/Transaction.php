@@ -14,13 +14,13 @@ class Transaction extends Model
         return $this->hasOne(BankAccount::class);
     }
 
-    public function fromCurrency()
+    public function bankAccountCurrency()
     {
-        return $this->hasOne(Currency::class, 'id', 'from_currency_id');
+        return $this->hasOne(Currency::class, 'id', 'bank_account_currency_id');
     }
 
-    public function toCurrency()
+    public function targetCurrency()
     {
-        return $this->hasOne(Currency::class, 'id', 'to_currency_id');
+        return $this->hasOne(Currency::class, 'id', 'target_currency_id');
     }
 }
