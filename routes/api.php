@@ -49,9 +49,8 @@ Route::get('/deposit', function (Request $request) {
     $userAccount = \App\Models\UserAccount::find(1);
 
     $userBankManager = new \Utils\UserBankManager($userAccount);
-    $userBankManager->deposit(100);
-    $userBankManager->deposit(200, \App\Models\Currency::findByCode('BRL'));
-    $userBankManager->deposit(300, \App\Models\Currency::findByCode('EUR'));
+    $userBankManager->deposit(500, \App\Models\Currency::findByCode('BRL'));
+    $userBankManager->deposit(100, \App\Models\Currency::findByCode('USD'));
 
     return 'value deposited';
 });
@@ -60,9 +59,8 @@ Route::get('/withdraw', function (Request $request) {
     $userAccount = \App\Models\UserAccount::find(1);
 
     $userBankManager = new \Utils\UserBankManager($userAccount);
-    $userBankManager->withdraw(100);
-    $userBankManager->withdraw(200, \App\Models\Currency::findByCode('BRL'));
-    $userBankManager->withdraw(300, \App\Models\Currency::findByCode('EUR'));
+    $userBankManager->withdraw(500, \App\Models\Currency::findByCode('BRL'));
+    $userBankManager->withdraw(100, \App\Models\Currency::findByCode('USD'));
 
     return 'amount withdrawn';
 });
