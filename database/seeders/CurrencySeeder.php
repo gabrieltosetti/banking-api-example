@@ -22,8 +22,6 @@ class CurrencySeeder extends Seeder
             'description' => 'United Arab Emirates Dirham',
             'created_at' => $now,
             'updated_at' => $now,
-            'created_at' => $now,
-            'updated_at' => $now,
         ]);
         DB::table('currencies')->insert([
             'code' => 'AFN',
