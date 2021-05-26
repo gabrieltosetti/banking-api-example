@@ -107,5 +107,7 @@ class UserBankManager
         $this->bankAccount->currency_id = $currency->id;
         $this->bankAccount->balance = $exchange['value'];
         $this->bankAccount->save();
+
+        $this->bankAccount->currency->refresh();
     }
 }
