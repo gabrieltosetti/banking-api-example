@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Currency;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +22,6 @@ class UserAccountSeeder extends Seeder
             'name' => 'New User',
             'email' => 'user@email.com',
             'password' => Hash::make('123'),
-            'default_currency_id' => Currency::where('code', 'USD')->first()->id,
             'created_at' => $now,
             'updated_at' => $now,
         ]);

@@ -13,4 +13,14 @@ class BankAccount extends Model
     {
         return $this->hasOne(UserAccount::class);
     }
+
+    public function currencyBalances()
+    {
+        return $this->hasMany(CurrencyBalance::class);
+    }
+
+    public function defaultCurrency()
+    {
+        return $this->hasOne(Currency::class, 'id', 'default_currency_id');
+    }
 }

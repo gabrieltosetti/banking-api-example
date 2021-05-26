@@ -23,7 +23,7 @@ class CurrencyBalanceSeeder extends Seeder
 
         DB::table('currency_balances')->insert([
             'bank_account_id' => $firstUser->bankAccount->id,
-            'currency_id' => $firstUser->default_currency_id,
+            'currency_id' => $firstUser->bankAccount->default_currency_id,
             'value' => 10,
             'created_at' => $now,
             'updated_at' => $now,

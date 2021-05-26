@@ -18,7 +18,6 @@ class CreateUserAccountsTable extends Migration
             $table->string('name', 50);
             $table->string('email', 100)->unique();
             $table->string('password');
-            $table->foreignId('default_currency_id')->nullable(false)->constrained('currencies');
             $table->timestamps();
         });
     }

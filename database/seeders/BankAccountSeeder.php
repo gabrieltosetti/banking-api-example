@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Currency;
 use App\Models\UserAccount;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
@@ -20,6 +21,7 @@ class BankAccountSeeder extends Seeder
 
         DB::table('bank_accounts')->insert([
             'user_account_id' => UserAccount::where('email', 'user@email.com')->first()->id,
+            'default_currency_id' => Currency::where('code', 'USD')->first()->id,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
