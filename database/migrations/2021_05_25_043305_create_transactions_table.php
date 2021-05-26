@@ -16,10 +16,10 @@ class CreateTransactionsTable extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('bank_account_id')->nullable(false)->constrained();
-            $table->foreignId('from_currency_id')->nullable(false)->constrained('currencies');
-            $table->float('from_currency_value')->nullable(false);
-            $table->foreignId('to_currency_id')->nullable(false)->constrained('currencies');
-            $table->float('to_currency_value')->nullable(false);
+            $table->foreignId('bank_account_currency_id')->nullable(false)->constrained('currencies');
+            $table->foreignId('target_currency_id')->nullable(false)->constrained('currencies');
+            $table->float('value', 10, 2)->nullable(false);
+            $table->float('exchange_rate')->nullable(false);
             $table->timestamps();
         });
     }
