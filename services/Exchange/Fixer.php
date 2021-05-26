@@ -22,6 +22,14 @@ class Fixer implements Exchange
         $this->clientBaseQuery = ['access_key' => $this->key];
     }
 
+    /**
+     * Get the exchange rate between 2 currencies
+     *
+     * @param Currency $from 
+     * @param Currency $to 
+     * 
+     * @return float Returns a float with 3 decimal places
+     */
     public function getRate(Currency $from, Currency $to): float
     {
         $toCode = $to->code;
@@ -39,6 +47,6 @@ class Fixer implements Exchange
             throw new \Exception('Error on getting rate data.');
         }
 
-        return floor($response->rates->{$toCode} * 100) / 100;
+        return floor($response->rates->{$toCode} * 1000) / 1000;
     }
 }

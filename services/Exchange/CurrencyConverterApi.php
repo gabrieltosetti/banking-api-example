@@ -3,23 +3,26 @@
 namespace Services\Exchange;
 
 use App\Models\Currency;
+use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use RuntimeException;
 
 /**
- * @see https://www.amdoren.com/currency-api/
+ * @see https://www.currencyconverterapi.com/docs
  * @package Services\Exchange
  */
-class Amdoren implements Exchange
+class CurrencyConverterApi implements Exchange
 {
-    private string $key = '4YcqDpRs6m9U8buSeh7gS57JFjBNm2';
-    private string $url = 'https://www.amdoren.com/api/currency.php';
+    private string $key = 'b78e3a13c84eba29c827';
+    private string $url = 'https://free.currconv.com/api/v7/convert';
     private Client $client;
     private array $clientBaseQuery;
 
     public function __construct()
     {
         $this->client = new Client(['base_uri' => $this->url]);
-        $this->clientBaseQuery = ['api_key' => $this->key];
+        $this->clientBaseQuery = ['apiKey' => $this->key, 'compact' => 'ultra'];
     }
 
     /**
@@ -32,22 +35,22 @@ class Amdoren implements Exchange
      */
     public function getRate(Currency $from, Currency $to): float
     {
-        $toCode = $to->code;
+        $fromToQuery = $from->code . '_' . $to->code;
 
         $query = ['query' => $this->clientBaseQuery + [
-            'from' => $from->code,
-            'to' => $toCode,
-            'amount' => 1,
+            'q' => $fromToQuery,
         ]];
 
         $responseStream = $this->client->get('', $query);
 
         $response = json_decode($responseStream->getBody()->getContents());
 
-        if ($response->error) {
+        if (empty($response->{$fromToQuery})) {
             throw new \Exception('Error on getting rate data.');
         }
 
-        return floor($response->amount * 1000) / 1000;
+        $value = $response->{$fromToQuery};
+
+        return floor($value * 1000) / 1000;
     }
 }
