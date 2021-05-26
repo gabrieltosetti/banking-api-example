@@ -22,7 +22,7 @@ class BankAccountSeeder extends Seeder
         DB::table('bank_accounts')->insert([
             'user_account_id' => UserAccount::where('email', 'user@email.com')->first()->id,
             'currency_id' => Currency::where('code', 'USD')->first()->id,
-            'balance' => 0.0,
+            'balance' => 100.0,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
