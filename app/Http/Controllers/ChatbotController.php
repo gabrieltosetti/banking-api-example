@@ -1,10 +1,11 @@
 <?php
+
 namespace App\Http\Controllers;
-  
-use BotMan\BotMan\BotMan;
-use Illuminate\Http\Request;
-use BotMan\BotMan\Messages\Incoming\Answer;
-  
+
+use App\Conversations\LoginConversation;
+use BotMan\BotMan\BotManFactory;
+use BotMan\BotMan\Cache\LaravelCache;
+
 class ChatbotController extends Controller
 {
     /**
@@ -12,31 +13,23 @@ class ChatbotController extends Controller
      */
     public function handle()
     {
-        $botman = app('botman');
-  
-        $botman->hears('{message}', function($botman, $message) {
-  
-            if ($message == 'hi') {
-                $this->askName($botman);
-            }else{
-                $botman->reply("write 'hi' for testing...");
-            }
-  
+        // $botman = app('botman');
+        $botman = BotManFactory::create(
+            [
+                'matchingData' => [
+                    'driver' => 'web',
+                ],
+                'conversation_cache_time' => 40,
+                'user_cache_time' => 30,
+            ],
+            new LaravelCache()
+        );
+
+        $botman->hears('hi', function($bot) {
+            $bot->startConversation(new LoginConversation());
         });
-  
+
         $botman->listen();
-    }
-  
-    /**
-     * Place your BotMan logic here.
-     */
-    public function askName($botman)
-    {
-        $botman->ask('Hello! What is your Name?', function(Answer $answer) {
-  
-            $name = $answer->getText();
-  
-            $this->say('Nice to meet you '.$name);
-        });
+
     }
 }
