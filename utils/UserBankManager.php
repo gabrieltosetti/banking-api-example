@@ -4,7 +4,7 @@ namespace Utils;
 
 use App\Models\BankAccount;
 use App\Models\Currency;
-use App\Models\CurrencyBalance;
+use App\Models\Transaction;
 use App\Models\UserAccount;
 
 class UserBankManager
@@ -12,47 +12,10 @@ class UserBankManager
     private UserAccount $userAccount;
     private BankAccount $bankAccount;
 
-    /**
-     * key   = Currency code
-     * value = CurrencyBalance object
-     * @var Array<string, CurrencyBalance>
-     */
-    private array $currencyBalances;
-
     public function __construct(UserAccount $userAccount)
     {
         $this->userAccount = $userAccount;
         $this->bankAccount = $this->userAccount->bankAccount;
-
-        foreach ($this->bankAccount->currencyBalances as $balance) {
-            $this->currencyBalances[$balance->currency->code] = $balance;
-        }
-    }
-
-    public function getDefaultCurrencyBalance(): CurrencyBalance
-    {
-        return $this->currencyBalances[$this->bankAccount->defaultCurrency->code];
-    }
-
-    public function getCurrencyBalanceOrCreate(Currency $currency): CurrencyBalance
-    {
-        $defaultCurrencyBalance = $this->getDefaultCurrencyBalance();
-
-        if ($defaultCurrencyBalance->code === $currency->code) {
-            return $defaultCurrencyBalance;
-        }
-
-        if (array_key_exists($currency->code, $this->currencyBalances)) {
-            return $this->currencyBalances[$currency->code];
-        }
-
-        // create a currency balance for the default user currency
-        $currencyBalance = new CurrencyBalance();
-        $currencyBalance->bank_account_id = $this->bankAccount->id;
-        $currencyBalance->currency_id = $currency->id;
-        $currencyBalance->save();
-
-        return $currencyBalance;
     }
 
     public function deposit(float $value, Currency $currency = null)
@@ -61,14 +24,23 @@ class UserBankManager
             throw new \Exception('Deposit value not specified', 400);
         }
 
-        $currencyBalance = $this->getDefaultCurrencyBalance();
 
-        if ($currency) {
-            $currencyBalance = $this->getCurrencyBalanceOrCreate($currency);
+
+        $exchangeRate = 1;
+        if ($currency && $currency->id !== $this->bankAccount->currency_id) {
+            // TODO: Convert value
         }
 
-        $currencyBalance->value += $value;
-        $currencyBalance->save();
+        $this->bankAccount->balance += $value * $exchangeRate;
+        $this->bankAccount->save();
+
+        $transaction = new Transaction();
+        $transaction->bank_account_id = $this->bankAccount->id;
+        $transaction->bank_account_currency_id = $this->bankAccount->currency_id;
+        $transaction->target_currency_id = $currency->id ?? $this->bankAccount->currency_id;
+        $transaction->value = $value;
+        $transaction->exchange_rate = $exchangeRate;
+        $transaction->save();
 
         return;
     }
@@ -76,28 +48,41 @@ class UserBankManager
     public function withdraw(float $value, Currency $currency = null)
     {
         if (!$value) {
-            throw new \Exception('Withdraw value not specified', 400);
+            throw new \Exception('Deposit value not specified', 400);
         }
 
-        $currencyBalance = $this->getDefaultCurrencyBalance();
-
-        if ($currency) {
-            $currencyBalance = $this->getCurrencyBalanceOrCreate($currency);
+        $exchangeRate = 1;
+        if ($currency && $currency->id !== $this->bankAccount->currency_id) {
+            // TODO: Convert value
         }
 
-        if ($currencyBalance->value < $value) {
-            throw new \Exception('Withdraw value is greater than you currency balance.');
+        $convertedValue = $value * $exchangeRate;
+
+        if ($this->bankAccount->balance < $convertedValue) {
+            $balance = $this->bankAccount->balance;
+            throw new \Exception(
+                "Withdraw value ($convertedValue) is greater than your account balance ($balance)."
+            );
         }
 
-        $currencyBalance->value -= $value;
-        $currencyBalance->save();
+        $this->bankAccount->balance -= $convertedValue;
+        $this->bankAccount->save();
+
+        $transaction = new Transaction();
+        $transaction->bank_account_id = $this->bankAccount->id;
+        $transaction->bank_account_currency_id = $this->bankAccount->currency_id;
+        $transaction->target_currency_id = $currency->id ?? $this->bankAccount->currency_id;
+        $transaction->value = -$value;
+        $transaction->exchange_rate = $exchangeRate;
+        $transaction->save();
 
         return;
     }
 
     public function setDefaultCurrency(Currency $currency)
     {
-        $this->bankAccount->default_currency_id = $currency->id;
+        // TODO: Convert value
+        $this->bankAccount->currency_id = $currency->id;
         $this->bankAccount->save();
     }
 }

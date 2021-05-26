@@ -34,20 +34,14 @@ Route::get('/create-user', function (Request $request) {
     // create a bank account for the user
     $bankAccount = new \App\Models\BankAccount();
     $bankAccount->user_account_id = $user->id;
-    $bankAccount->default_currency_id = \App\Models\Currency::findByCode('USD')->id;
+    $bankAccount->currency_id = \App\Models\Currency::findByCode('USD')->id;
+    $bankAccount->balance = 100.0;
     $bankAccount->save();
-
-    // create a currency balance for the default user currency
-    $currencyBalance = new \App\Models\CurrencyBalance();
-    $currencyBalance->bank_account_id = $bankAccount->id;
-    $currencyBalance->currency_id = $user->default_currency_id;
-    $currencyBalance->save();
 
     return [
         'user_account' => \App\Models\UserAccount::find($user->id),
-        'default_currency' => \App\Models\Currency::find($user->default_currency_id),
+        'default_currency' => \App\Models\Currency::find($bankAccount->currency_id),
         'bank_account' => \App\Models\BankAccount::where('user_account_id', $user->id)->first(),
-        'currency_balances' => \App\Models\CurrencyBalance::where('bank_account_id', $bankAccount->id)->get(),
     ];
 });
 
@@ -66,7 +60,9 @@ Route::get('/withdraw', function (Request $request) {
     $userAccount = \App\Models\UserAccount::find(1);
 
     $userBankManager = new \Utils\UserBankManager($userAccount);
+    $userBankManager->withdraw(100);
     $userBankManager->withdraw(200, \App\Models\Currency::findByCode('BRL'));
+    $userBankManager->withdraw(300, \App\Models\Currency::findByCode('EUR'));
 
     return 'amount withdrawn';
 });
@@ -75,7 +71,7 @@ Route::get('/set-default-currency', function (Request $request) {
     $userAccount = \App\Models\UserAccount::find(1);
 
     $userBankManager = new \Utils\UserBankManager($userAccount);
-    $userBankManager->setDefaultCurrency(\App\Models\Currency::findByCode('BRL'));
+    $userBankManager->setDefaultCurrency(\App\Models\Currency::findByCode('USD'));
 
     return 'default currency changed';
 });
@@ -83,5 +79,8 @@ Route::get('/set-default-currency', function (Request $request) {
 Route::get('/show-balance', function (Request $request) {
     $userAccount = \App\Models\UserAccount::find(1);
 
-    return $userAccount->currencyBalances();
+    return [
+        'balance' => $userAccount->bankAccount->balance,
+        'currency' => $userAccount->bankAccount->currency->code,
+    ];
 });
