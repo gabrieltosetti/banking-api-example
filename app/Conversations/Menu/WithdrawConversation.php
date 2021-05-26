@@ -30,19 +30,19 @@ class WithdrawConversation extends Conversation
         $this->say("Your balance is $" . $balance . " $code");
 
         $this->ask('How much do you like to withdraw (eg. 1.00)?', function (Answer $answer) {
-            $this->withdrawAmmount = $answer->getText();
+            $withdrawAmmount = $answer->getText();
 
-            if (!is_numeric($this->withdrawAmmount)) {
+            if (!is_numeric($withdrawAmmount)) {
                 $this->say("Only numbers please");
                 return $this->repeat();
             }
 
-            if ($this->withdrawAmmount <= 0) {
-                $this->say("Greater than 0");
+            if ($withdrawAmmount <= 0) {
+                $this->say("Ammount must be greater than 0");
                 return $this->repeat();
             }
 
-            $this->withdrawAmmount = floor((float) $this->withdrawAmmount * 100) / 100;
+            $this->withdrawAmmount = floor((float) $withdrawAmmount * 100) / 100;
 
             return $this->askToChangeCurrency();
         });
@@ -109,8 +109,13 @@ class WithdrawConversation extends Conversation
 
     public function withdrawAmmount()
     {
-        $userBankManager = new UserBankManager($this->userAccount);
-        $userBankManager->withdraw($this->withdrawAmmount, $this->currency);
+        try {
+            $userBankManager = new UserBankManager($this->userAccount);
+            $userBankManager->withdraw($this->withdrawAmmount, $this->currency);
+        } catch (\Throwable $ex) {
+            $this->say($ex->getMessage());
+            return $this->askForWithdrawAmmount();
+        }
 
         $code = $this->userAccount->bankAccount->currency->code;
         $balance = $this->userAccount->bankAccount->balance;

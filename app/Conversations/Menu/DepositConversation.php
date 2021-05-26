@@ -31,19 +31,19 @@ class DepositConversation extends Conversation
         $this->say("Your balance is $" . $balance . " $code");
 
         $this->ask('How much do you like to deposit (eg. 1.00)?', function (Answer $answer) {
-            $this->depositAmmount = $answer->getText();
+            $depositAmmount = $answer->getText();
 
-            if (!is_numeric($this->depositAmmount)) {
+            if (!is_numeric($depositAmmount)) {
                 $this->say("Only numbers please");
                 return $this->repeat();
             }
 
-            if ($this->depositAmmount <= 0) {
-                $this->say("Greater than 0");
+            if ($depositAmmount <= 0) {
+                $this->say("Ammount must be greater than 0");
                 return $this->repeat();
             }
 
-            $this->depositAmmount = floor((float) $this->depositAmmount * 100) / 100;
+            $this->depositAmmount = floor((float) $depositAmmount * 100) / 100;
 
             return $this->askToChangeCurrency();
         });
