@@ -6,7 +6,7 @@ use App\Models\BankAccount;
 use App\Models\Currency;
 use App\Models\Transaction;
 use App\Models\UserAccount;
-use Services\Exchange\Fixer;
+use Services\Exchange\Amdoren;
 
 class UserBankManager
 {
@@ -18,7 +18,7 @@ class UserBankManager
     {
         $this->userAccount = $userAccount;
         $this->bankAccount = $this->userAccount->bankAccount;
-        $this->currencyExchanger = new CurrencyExchanger(new Fixer());
+        $this->currencyExchanger = new CurrencyExchanger(new Amdoren());
     }
 
     public function deposit(float $value, Currency $currency = null)

@@ -24,11 +24,11 @@ Route::get('/create-user', function (Request $request) {
     $user->name = 'teste';
     $user->email = 'teste@example.com' . rand(999, 999999);
     $user->password = \Illuminate\Support\Facades\Hash::make('123');
-    
+
     // if (\Illuminate\Support\Facades\Hash::check('plain-text', $hashedPassword)) {
     //     // The passwords match...
     // }
-    
+
     $user->save();
 
     // create a bank account for the user
