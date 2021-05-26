@@ -16,6 +16,6 @@ class CurrencyBalance extends Model
 
     public function currency()
     {
-        return $this->hasOne(Currency::class);
+        return $this->hasOne(Currency::class, 'id', 'currency_id');
     }
 }
