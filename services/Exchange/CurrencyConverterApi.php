@@ -3,10 +3,8 @@
 namespace Services\Exchange;
 
 use App\Models\Currency;
-use Exception;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
-use RuntimeException;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @see https://www.currencyconverterapi.com/docs
@@ -18,6 +16,7 @@ class CurrencyConverterApi implements Exchange
     private string $url = 'https://free.currconv.com/api/v7/convert';
     private Client $client;
     private array $clientBaseQuery;
+    private int $cacheExpirationInSeconds = 3600;
 
     public function __construct()
     {
@@ -31,26 +30,32 @@ class CurrencyConverterApi implements Exchange
      * @param Currency $from 
      * @param Currency $to 
      * 
-     * @return float Returns a float with 3 decimal places
+     * @return float
      */
     public function getRate(Currency $from, Currency $to): float
     {
-        $fromToQuery = $from->code . '_' . $to->code;
+        $fromToString = $from->code . '_' . $to->code;
+
+        if (Cache::has($fromToString)) {
+            return Cache::get($fromToString);
+        }
 
         $query = ['query' => $this->clientBaseQuery + [
-            'q' => $fromToQuery,
+            'q' => $fromToString,
         ]];
 
         $responseStream = $this->client->get('', $query);
 
         $response = json_decode($responseStream->getBody()->getContents());
 
-        if (empty($response->{$fromToQuery})) {
+        if (empty($response->{$fromToString})) {
             throw new \Exception('Error on getting rate data.');
         }
 
-        $value = $response->{$fromToQuery};
+        $value = (float) $response->{$fromToString};
 
-        return floor($value * 1000) / 1000;
+        Cache::put($fromToString, $value, $this->cacheExpirationInSeconds);
+
+        return $value;
     }
 }

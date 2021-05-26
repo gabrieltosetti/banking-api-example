@@ -4,6 +4,7 @@ namespace Services\Exchange;
 
 use App\Models\Currency;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @see https://www.amdoren.com/currency-api/
@@ -15,6 +16,7 @@ class Amdoren implements Exchange
     private string $url = 'https://www.amdoren.com/api/currency.php';
     private Client $client;
     private array $clientBaseQuery;
+    private int $cacheExpirationInSeconds = 3600;
 
     public function __construct()
     {
@@ -28,15 +30,19 @@ class Amdoren implements Exchange
      * @param Currency $from 
      * @param Currency $to 
      * 
-     * @return float Returns a float with 3 decimal places
+     * @return float
      */
     public function getRate(Currency $from, Currency $to): float
     {
-        $toCode = $to->code;
+        $fromToString = $from->code . '_' . $to->code;
+
+        if (Cache::has($fromToString)) {
+            return Cache::get($fromToString);
+        }
 
         $query = ['query' => $this->clientBaseQuery + [
             'from' => $from->code,
-            'to' => $toCode,
+            'to' => $to->code,
             'amount' => 1,
         ]];
 
@@ -48,6 +54,10 @@ class Amdoren implements Exchange
             throw new \Exception('Error on getting rate data.');
         }
 
-        return floor($response->amount * 1000) / 1000;
+        $value = (float) $response->amount;
+
+        Cache::put($fromToString, $value, $this->cacheExpirationInSeconds);
+
+        return $value;
     }
 }

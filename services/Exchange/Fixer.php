@@ -4,6 +4,7 @@ namespace Services\Exchange;
 
 use App\Models\Currency;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @see https://fixer.io/documentation
@@ -15,6 +16,7 @@ class Fixer implements Exchange
     private string $url = 'http://data.fixer.io/api/latest';
     private Client $client;
     private array $clientBaseQuery;
+    private int $cacheExpirationInSeconds = 3600;
 
     public function __construct()
     {
@@ -28,10 +30,16 @@ class Fixer implements Exchange
      * @param Currency $from 
      * @param Currency $to 
      * 
-     * @return float Returns a float with 3 decimal places
+     * @return float
      */
     public function getRate(Currency $from, Currency $to): float
     {
+        $fromToString = $from->code . '_' . $to->code;
+
+        if (Cache::has($fromToString)) {
+            return Cache::get($fromToString);
+        }
+
         $toCode = $to->code;
 
         $query = ['query' => $this->clientBaseQuery + [
@@ -47,6 +55,10 @@ class Fixer implements Exchange
             throw new \Exception('Error on getting rate data.');
         }
 
-        return floor($response->rates->{$toCode} * 1000) / 1000;
+        $value = (float) $response->rates->{$toCode};
+
+        Cache::put($fromToString, $value, $this->cacheExpirationInSeconds);
+
+        return $value;
     }
 }
