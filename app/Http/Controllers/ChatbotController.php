@@ -25,7 +25,7 @@ class ChatbotController extends Controller
             new LaravelCache()
         );
 
-        $botman->hears('hi', function($bot) {
+        $botman->hears('(.*)', function($bot) {
             $bot->startConversation(new LoginConversation());
         });
 

@@ -24,6 +24,12 @@ class DepositConversation extends Conversation
 
     public function askForDepositAmmount()
     {
+        $code = $this->userAccount->bankAccount->currency->code;
+        $balance = $this->userAccount->bankAccount->balance;
+        $balance = number_format($balance, 2, ',', '.');
+
+        $this->say("Your balance is $" . $balance . " $code");
+
         $this->ask('How much do you like to deposit (eg. 1.00)?', function (Answer $answer) {
             $this->depositAmmount = $answer->getText();
 
@@ -76,7 +82,7 @@ class DepositConversation extends Conversation
 
             // Set the currency from the default bank account
             $this->currency = $this->userAccount->bankAccount->currency;
-            
+
             return $this->depositAmmount();
         });
     }
