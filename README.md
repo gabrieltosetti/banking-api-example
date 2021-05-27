@@ -8,7 +8,7 @@ The backend needs to do APIs calls to Exchange Rate services so it is **mandator
 1. [Fixer](https://fixer.io/documentation)
 1. [Amdoren](https://www.amdoren.com/currency-api/)
 
-## Instalation
+## Installation
 
 - Clone the repository.
 - Edit `.env` and paste the Exchange service API Key.
