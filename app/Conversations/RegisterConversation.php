@@ -16,7 +16,7 @@ class RegisterConversation extends Conversation
 
     public function askForPassword()
     {
-        $this->ask('Type your password', function(Answer $answer) {
+        $this->ask('Create your password', function(Answer $answer) {
             $password = $answer->getText();
 
             // Create the user account

@@ -13,7 +13,7 @@ class LoginConversation extends Conversation
 
     public function askFirstname()
     {
-        $this->ask('Hello! What is your firstname?', function (Answer $answer) {
+        $this->ask('Hello! What is your first name?', function (Answer $answer) {
             $name = $answer->getText();
 
             $this->bot->userStorage()->save([
@@ -40,14 +40,14 @@ class LoginConversation extends Conversation
                 return $this->bot->startConversation(new RegisterConversation());
             }
 
-            $this->say("I see you already have a account.");
+            $this->say("You already have a account. Let's login!");
             $this->askForPassword();
         });
     }
 
     public function askForPassword()
     {
-        $this->ask('What is the password?', function (Answer $answer) {
+        $this->ask('Enter the account password', function (Answer $answer) {
             $password = $answer->getText();
 
             if (!Hash::check($password, $this->user->password)) {
