@@ -13,15 +13,8 @@ class ChatbotController extends Controller
      */
     public function handle()
     {
-        // $botman = app('botman');
         $botman = BotManFactory::create(
-            [
-                'matchingData' => [
-                    'driver' => 'web',
-                ],
-                'conversation_cache_time' => 40,
-                'user_cache_time' => 30,
-            ],
+            config('botman.config') + config('botman.web'),
             new LaravelCache()
         );
 
@@ -30,6 +23,5 @@ class ChatbotController extends Controller
         });
 
         $botman->listen();
-
     }
 }
