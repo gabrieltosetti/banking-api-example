@@ -1,3 +1,6 @@
+## Requirements
+- Docker installed and running.
+
 ## Before Install
 The backend needs to do APIs calls to Exchange Rate services so it is **mandatory** get a key (it's free) for, at least, the default service. You will only need 1 key (or more if you run out of usage limit):
 
