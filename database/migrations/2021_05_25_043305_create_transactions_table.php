@@ -18,8 +18,8 @@ class CreateTransactionsTable extends Migration
             $table->foreignId('bank_account_id')->nullable(false)->constrained();
             $table->foreignId('bank_account_currency_id')->nullable(false)->constrained('currencies');
             $table->foreignId('target_currency_id')->nullable(false)->constrained('currencies');
-            $table->float('value', 10, 2)->nullable(false);
-            $table->float('rate', 10, 8)->nullable(false);
+            $table->float('value', 22, 2)->nullable(false);
+            $table->float('rate', 28, 8)->nullable(false);
             $table->tinyInteger('type')->nullable(false);
             $table->timestamps();
         });
