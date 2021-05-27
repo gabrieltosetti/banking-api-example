@@ -12,15 +12,20 @@ use Illuminate\Support\Facades\Cache;
  */
 class Fixer implements Exchange
 {
-    private string $key = '24a5fc13c31e80246585071d0652e36a';
-    private string $url = 'http://data.fixer.io/api/latest';
+    private string $key;
+    private string $baseUri = 'http://data.fixer.io/api/latest';
     private Client $client;
     private array $clientBaseQuery;
     private int $cacheExpirationInSeconds = 3600;
 
     public function __construct()
     {
-        $this->client = new Client(['base_uri' => $this->url]);
+        if (!env('FIXER_API_KEY')) {
+            throw new \Exception('Missing exchanger api key.');
+        }
+
+        $this->key = env('FIXER_API_KEY');
+        $this->client = new Client(['base_uri' => $this->baseUri]);
         $this->clientBaseQuery = ['access_key' => $this->key];
     }
 

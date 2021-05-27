@@ -12,15 +12,20 @@ use Illuminate\Support\Facades\Cache;
  */
 class Amdoren implements Exchange
 {
-    private string $key = '4YcqDpRs6m9U8buSeh7gS57JFjBNm2';
-    private string $url = 'https://www.amdoren.com/api/currency.php';
+    private string $key;
+    private string $baseUri = 'https://www.amdoren.com/api/currency.php';
     private Client $client;
     private array $clientBaseQuery;
     private int $cacheExpirationInSeconds = 3600;
 
     public function __construct()
     {
-        $this->client = new Client(['base_uri' => $this->url]);
+        if (!env('AMDOREN_API_KEY')) {
+            throw new \Exception('Missing exchanger api key.');
+        }
+
+        $this->key = env('AMDOREN_API_KEY');
+        $this->client = new Client(['base_uri' => $this->baseUri]);
         $this->clientBaseQuery = ['api_key' => $this->key];
     }
 

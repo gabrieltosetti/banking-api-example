@@ -12,15 +12,20 @@ use Illuminate\Support\Facades\Cache;
  */
 class CurrencyConverterApi implements Exchange
 {
-    private string $key = 'b78e3a13c84eba29c827';
-    private string $url = 'https://free.currconv.com/api/v7/convert';
+    private string $key;
+    private string $baseUri = 'https://free.currconv.com/api/v7/convert';
     private Client $client;
     private array $clientBaseQuery;
     private int $cacheExpirationInSeconds = 3600;
 
     public function __construct()
     {
-        $this->client = new Client(['base_uri' => $this->url]);
+        if (!env('CURRENCY_CONVERTER_API_API_KEY')) {
+            throw new \Exception('Missing exchanger api key.');
+        }
+
+        $this->key = env('CURRENCY_CONVERTER_API_API_KEY');
+        $this->client = new Client(['base_uri' => $this->baseUri]);
         $this->clientBaseQuery = ['apiKey' => $this->key, 'compact' => 'ultra'];
     }
 
