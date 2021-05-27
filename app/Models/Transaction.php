@@ -9,6 +9,10 @@ class Transaction extends Model
 {
     use HasFactory;
 
+    public const TYPE_DEPOSIT = 1;
+    public const TYPE_WITHDRAW = 2;
+    public const TYPE_CHANGE_CURRENCY = 3;
+
     public function bankAccount()
     {
         return $this->hasOne(BankAccount::class);

@@ -50,6 +50,7 @@ class UserBankManager
         $transaction->target_currency_id = $currency->id ?? $this->bankAccount->currency_id;
         $transaction->value = $value;
         $transaction->rate = $rate;
+        $transaction->type = Transaction::TYPE_DEPOSIT;
         $transaction->save();
 
         return;
@@ -94,6 +95,7 @@ class UserBankManager
         $transaction->target_currency_id = $currency->id ?? $this->bankAccount->currency_id;
         $transaction->value = -$value;
         $transaction->rate = $rate;
+        $transaction->type = Transaction::TYPE_WITHDRAW;
         $transaction->save();
 
         return;
@@ -103,7 +105,7 @@ class UserBankManager
     {
         $oldCurrencyId = $this->bankAccount->currency_id;
         $oldAccountBalance = $this->bankAccount->balance;
-        $newCurrencyId = $targetCurrency->currency_id;
+        $newCurrencyId = $targetCurrency->id;
 
         $exchange = $this->currencyExchanger->convert(
             $this->bankAccount->currency,
@@ -115,7 +117,7 @@ class UserBankManager
         $this->bankAccount->balance = $exchange['value'];
         $this->bankAccount->save();
 
-        $this->bankAccount->currency->refresh();
+        $this->bankAccount->refresh();
 
         $transaction = new Transaction();
         $transaction->bank_account_id = $this->bankAccount->id;
@@ -123,6 +125,7 @@ class UserBankManager
         $transaction->target_currency_id = $newCurrencyId;
         $transaction->value = $oldAccountBalance;
         $transaction->rate = $exchange['rate'];
+        $transaction->type = Transaction::TYPE_CHANGE_CURRENCY;
         $transaction->save();
     }
 }
