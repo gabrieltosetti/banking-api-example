@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Currency;
-use App\Models\UserAccount;
+use App\Infrastructure\Models\Currency;
+use App\Infrastructure\Models\UserAccount;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;

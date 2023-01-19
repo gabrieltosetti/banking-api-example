@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\ChatbotController;
+use App\Infrastructure\Http\Controllers\ChatbotController;
 use Illuminate\Support\Facades\Route;
 
 /*
