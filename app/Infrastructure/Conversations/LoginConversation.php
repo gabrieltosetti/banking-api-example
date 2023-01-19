@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Hash;
 class LoginConversation extends Conversation
 {
     protected ?UserAccount $user = null;
-    private UserAccountRepositoryInterface $userAccountRepository;
+    protected UserAccountRepositoryInterface $userAccountRepository;
 
     public function __construct(
         UserAccountRepositoryInterface $userAccountRepository
@@ -22,10 +22,15 @@ class LoginConversation extends Conversation
         $this->userAccountRepository = $userAccountRepository;
     }
 
+    public function run(): void
+    {
+        $this->bot->userStorage()->delete();
+        $this->askFirstname();
+    }
+
     public function askFirstname(): void
     {
-        $userAccountRepository = $this->userAccountRepository;
-        $this->ask('Hello! What is your first name?', function (Answer $answer) use ($userAccountRepository) {
+        $this->ask('Hello! What is your first name?', function (Answer $answer) {
             $name = $answer->getText();
 
             $this->bot->userStorage()->save([
@@ -33,19 +38,19 @@ class LoginConversation extends Conversation
             ]);
 
             $this->say('Nice to meet you ' . $name);
-            $this->askForEmail($userAccountRepository);
+            $this->askForEmail();
         });
     }
 
-    public function askForEmail($userAccountRepository): void
+    public function askForEmail(): void
     {
-        $this->ask('What is your email?', function (Answer $answer) use ($userAccountRepository) {
+        $this->ask('What is your email?', function (Answer $answer) {
             $email = $answer->getText();
             $this->bot->userStorage()->save([
                 'email' => $email
             ]);
 
-            $this->user = $userAccountRepository->findByEmail($email);
+            $this->user = $this->userAccountRepository->findByEmail($email);
 
             if (!$this->user) {
                 $this->say("I see that you don't have a account. Let's create one!");
@@ -69,11 +74,5 @@ class LoginConversation extends Conversation
 
             $this->bot->startConversation(new MenuConversation($this->user));
         });
-    }
-
-    public function run(): void
-    {
-        $this->bot->userStorage()->delete();
-        $this->askFirstname();
     }
 }
