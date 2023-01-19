@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Conversations;
 
+use App\Domain\Repositories\UserAccountRepositoryInterface;
 use App\Infrastructure\Models\UserAccount;
 use BotMan\BotMan\Messages\Conversations\Conversation;
 use BotMan\BotMan\Messages\Incoming\Answer;
@@ -11,7 +14,13 @@ class LoginConversation extends Conversation
 {
     protected ?UserAccount $user = null;
 
-    public function askFirstname()
+    public function __construct(
+        private UserAccountRepositoryInterface $userAccountRepository
+    ) {
+        $this->user = null;
+    }
+
+    public function askFirstname(): void
     {
         $this->ask('Hello! What is your first name?', function (Answer $answer) {
             $name = $answer->getText();
@@ -25,7 +34,7 @@ class LoginConversation extends Conversation
         });
     }
 
-    public function askForEmail()
+    public function askForEmail(): void
     {
         $this->ask('What is your email?', function (Answer $answer) {
             $email = $answer->getText();
@@ -33,7 +42,7 @@ class LoginConversation extends Conversation
                 'email' => $email
             ]);
 
-            $this->user = UserAccount::where('email', $email)->first();
+            $this->user = $this->userAccountRepository->findByEmail($email);
 
             if (!$this->user) {
                 $this->say("I see that you don't have a account. Let's create one!");
@@ -45,7 +54,7 @@ class LoginConversation extends Conversation
         });
     }
 
-    public function askForPassword()
+    public function askForPassword(): void
     {
         $this->ask('Enter the account password', function (Answer $answer) {
             $password = $answer->getText();
@@ -59,7 +68,7 @@ class LoginConversation extends Conversation
         });
     }
 
-    public function run()
+    public function run(): void
     {
         $this->bot->userStorage()->delete();
         $this->askFirstname();
