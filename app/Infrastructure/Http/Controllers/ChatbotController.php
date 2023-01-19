@@ -10,9 +10,12 @@ use BotMan\BotMan\Cache\LaravelCache;
 
 class ChatbotController extends Controller
 {
+    private LoginConversation $loginConversation;
+
     public function __construct(
-        private LoginConversation $loginConversation
+        LoginConversation $loginConversation
     ) {
+        $this->loginConversation = $loginConversation;
     }
 
     /**

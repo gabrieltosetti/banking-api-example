@@ -13,16 +13,19 @@ use Illuminate\Support\Facades\Hash;
 class LoginConversation extends Conversation
 {
     protected ?UserAccount $user = null;
+    private UserAccountRepositoryInterface $userAccountRepository;
 
     public function __construct(
-        private UserAccountRepositoryInterface $userAccountRepository
+        UserAccountRepositoryInterface $userAccountRepository
     ) {
         $this->user = null;
+        $this->userAccountRepository = $userAccountRepository;
     }
 
     public function askFirstname(): void
     {
-        $this->ask('Hello! What is your first name?', function (Answer $answer) {
+        $userAccountRepository = $this->userAccountRepository;
+        $this->ask('Hello! What is your first name?', function (Answer $answer) use ($userAccountRepository) {
             $name = $answer->getText();
 
             $this->bot->userStorage()->save([
@@ -30,19 +33,19 @@ class LoginConversation extends Conversation
             ]);
 
             $this->say('Nice to meet you ' . $name);
-            $this->askForEmail();
+            $this->askForEmail($userAccountRepository);
         });
     }
 
-    public function askForEmail(): void
+    public function askForEmail($userAccountRepository): void
     {
-        $this->ask('What is your email?', function (Answer $answer) {
+        $this->ask('What is your email?', function (Answer $answer) use ($userAccountRepository) {
             $email = $answer->getText();
             $this->bot->userStorage()->save([
                 'email' => $email
             ]);
 
-            $this->user = $this->userAccountRepository->findByEmail($email);
+            $this->user = $userAccountRepository->findByEmail($email);
 
             if (!$this->user) {
                 $this->say("I see that you don't have a account. Let's create one!");
