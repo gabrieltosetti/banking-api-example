@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\Providers;
 
+use App\Domain\Repositories\UserAccountRepositoryInterface;
+use App\Infrastructure\Conversations\ConversationFactory;
+use App\Infrastructure\Repositories\UserAccountRepository;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -15,9 +19,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind(
-            \App\Domain\Repositories\UserAccountRepositoryInterface::class,
-            \App\Infrastructure\Repositories\UserAccountRepository::class
+        $this->app->singleton(
+            UserAccountRepositoryInterface::class,
+            fn (Container $app) => $app->make(UserAccountRepository::class)
+        );
+        $this->app->singleton(
+            ConversationFactory::class,
+            fn (Container $app) => new ConversationFactory($app->make(UserAccountRepositoryInterface::class))
         );
     }
 

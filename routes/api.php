@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Domain\Utils\UserBankManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -48,7 +51,7 @@ Route::get('/create-user', function (Request $request) {
 Route::get('/deposit', function (Request $request) {
     $userAccount = \App\Infrastructure\Models\UserAccount::find(1);
 
-    $userBankManager = new \Utils\Domain\UserBankManager($userAccount);
+    $userBankManager = new UserBankManager($userAccount);
     $userBankManager->deposit(500, \App\Infrastructure\Models\Currency::findByCode('BRL'));
     $userBankManager->deposit(100, \App\Infrastructure\Models\Currency::findByCode('USD'));
 
@@ -58,7 +61,7 @@ Route::get('/deposit', function (Request $request) {
 Route::get('/withdraw', function (Request $request) {
     $userAccount = \App\Infrastructure\Models\UserAccount::find(1);
 
-    $userBankManager = new \Utils\Domain\UserBankManager($userAccount);
+    $userBankManager = new UserBankManager($userAccount);
     $userBankManager->withdraw(500, \App\Infrastructure\Models\Currency::findByCode('BRL'));
     $userBankManager->withdraw(100, \App\Infrastructure\Models\Currency::findByCode('USD'));
 
@@ -68,7 +71,7 @@ Route::get('/withdraw', function (Request $request) {
 Route::get('/set-default-currency', function (Request $request) {
     $userAccount = \App\Infrastructure\Models\UserAccount::find(1);
 
-    $userBankManager = new \Utils\Domain\UserBankManager($userAccount);
+    $userBankManager = new UserBankManager($userAccount);
     $userBankManager->setDefaultCurrency(\App\Infrastructure\Models\Currency::findByCode('USD'));
 
     return 'default currency changed';

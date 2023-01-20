@@ -6,7 +6,6 @@ namespace App\Infrastructure\Conversations;
 
 use App\Domain\Repositories\UserAccountRepositoryInterface;
 use App\Infrastructure\Models\UserAccount;
-use BotMan\BotMan\Messages\Conversations\Conversation;
 use BotMan\BotMan\Messages\Incoming\Answer;
 use Illuminate\Support\Facades\Hash;
 
@@ -16,9 +15,10 @@ class LoginConversation extends Conversation
     protected UserAccountRepositoryInterface $userAccountRepository;
 
     public function __construct(
+        ConversationFactory $conversationFactory,
         UserAccountRepositoryInterface $userAccountRepository
     ) {
-        $this->user = null;
+        parent::__construct($conversationFactory);
         $this->userAccountRepository = $userAccountRepository;
     }
 
@@ -30,49 +30,58 @@ class LoginConversation extends Conversation
 
     public function askFirstname(): void
     {
-        $this->ask('Hello! What is your first name?', function (Answer $answer) {
-            $name = $answer->getText();
+        $this->ask('Hello! What is your first name?', fn (Answer $answer) => $this->askFirstnameAnswer($answer));
+    }
+    
+    public function askFirstnameAnswer(Answer $answer): void
+    {
+        $name = $answer->getText();
 
-            $this->bot->userStorage()->save([
-                'name' => $name
-            ]);
+        $this->bot->userStorage()->save(['name' => $name]);
 
-            $this->say('Nice to meet you ' . $name);
-            $this->askForEmail();
-        });
+        $this->say('Nice to meet you ' . $name);
+        $this->askForEmail();
     }
 
     public function askForEmail(): void
     {
-        $this->ask('What is your email?', function (Answer $answer) {
-            $email = $answer->getText();
-            $this->bot->userStorage()->save([
-                'email' => $email
-            ]);
+        $this->ask('What is your email?', fn (Answer $answer) => $this->askForEmailAnswer($answer));
+    }
 
-            $this->user = $this->userAccountRepository->findByEmail($email);
+    public function askForEmailAnswer(Answer $answer): void
+    {
+        $email = $answer->getText();
+        $this->bot->userStorage()->save([
+            'email' => $email
+        ]);
 
-            if (!$this->user) {
-                $this->say("I see that you don't have a account. Let's create one!");
-                return $this->bot->startConversation(new RegisterConversation());
-            }
+        $this->user = $this->userAccountRepository->findByEmail($email);
 
-            $this->say("You already have a account. Let's login!");
-            $this->askForPassword();
-        });
+        if (!$this->user) {
+            $this->say("I see that you don't have a account. Let's create one!");
+            $this->startRegisterConversation();
+            return;
+        }
+
+        $this->say("You already have a account. Let's login!");
+        $this->askForPassword();
     }
 
     public function askForPassword(): void
     {
-        $this->ask('Enter the account password', function (Answer $answer) {
-            $password = $answer->getText();
+        $this->ask('Enter the account password', fn (Answer $answer) => $this->askForPasswordAnswer($answer));
+    }
 
-            if (!Hash::check($password, $this->user->password)) {
-                $this->say("Sorry, try again!");
-                return $this->repeat();
-            }
+    public function askForPasswordAnswer(Answer $answer): void
+    {
+        $password = $answer->getText();
 
-            $this->bot->startConversation(new MenuConversation($this->user));
-        });
+        if (!Hash::check($password, $this->user->password)) {
+            $this->say("Sorry, try again!");
+            $this->repeat();
+            return;
+        }
+
+        $this->startMenuConversation($this->user);
     }
 }

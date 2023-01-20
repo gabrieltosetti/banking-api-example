@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controllers;
 
-use App\Infrastructure\Conversations\LoginConversation;
+use App\Infrastructure\Conversations\ConversationFactory;
 use BotMan\BotMan\BotManFactory;
 use BotMan\BotMan\Cache\LaravelCache;
 
 class ChatbotController extends Controller
 {
-    private LoginConversation $loginConversation;
+    private ConversationFactory $conversationFactory;
 
     public function __construct(
-        LoginConversation $loginConversation
+        ConversationFactory $conversationFactory
     ) {
-        $this->loginConversation = $loginConversation;
+        $this->conversationFactory = $conversationFactory;
     }
 
     /**
@@ -29,7 +29,7 @@ class ChatbotController extends Controller
         );
 
         $botman->hears('(.*)', function (\BotMan\BotMan\BotMan $bot) {
-            $bot->startConversation($this->loginConversation);
+            $bot->startConversation($this->conversationFactory->createLoginConversation());
         });
 
         $botman->listen();

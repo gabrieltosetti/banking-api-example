@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * @see https://www.currencyconverterapi.com/docs
- * @package App\Infrastructure\Exchange
  */
 class CurrencyConverterApi implements Exchange
 {
@@ -27,7 +26,7 @@ class CurrencyConverterApi implements Exchange
         }
 
         $this->key = env('CURRENCY_CONVERTER_API_API_KEY');
-        $this->client = new Client(['base_uri' => $this->baseUri]);
+        $this->client = new Client(['base_uri' => $this->baseUri, 'verify' => false]);
         $this->clientBaseQuery = ['apiKey' => $this->key, 'compact' => 'ultra'];
     }
 

@@ -4,17 +4,25 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Conversations\Menu;
 
-use App\Infrastructure\Conversations\MenuConversation;
+use App\Infrastructure\Conversations\Conversation;
+use App\Infrastructure\Conversations\ConversationFactory;
 use App\Infrastructure\Models\UserAccount;
-use BotMan\BotMan\Messages\Conversations\Conversation;
 
 class BalanceConversation extends Conversation
 {
     protected UserAccount $userAccount;
 
-    public function __construct(UserAccount $userAccount)
-    {
+    public function __construct(
+        ConversationFactory $conversationFactory,
+        UserAccount $userAccount
+    ) {
+        parent::__construct($conversationFactory);
         $this->userAccount = $userAccount;
+    }
+
+    public function run()
+    {
+        $this->showBalance();
     }
 
     public function showBalance()
@@ -25,11 +33,6 @@ class BalanceConversation extends Conversation
 
         $this->say("Your balance is $" . $balance . " $code");
 
-        return $this->bot->startConversation(new MenuConversation($this->userAccount));
-    }
-
-    public function run()
-    {
-        $this->showBalance();
+        $this->startMenuConversation($this->userAccount);
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Models;
 
-use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 

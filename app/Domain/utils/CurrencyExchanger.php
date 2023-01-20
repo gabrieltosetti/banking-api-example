@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Utils\Domain;
+namespace App\Domain\Utils;
 
 use App\Infrastructure\Models\Currency;
 use App\Infrastructure\Exchange\CurrencyConverterApi;

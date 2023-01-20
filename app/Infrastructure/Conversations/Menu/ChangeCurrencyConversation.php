@@ -4,25 +4,37 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Conversations\Menu;
 
-use App\Infrastructure\Conversations\MenuConversation;
+use App\Domain\Utils\UserBankManager;
+use App\Infrastructure\Conversations\Conversation;
+use App\Infrastructure\Conversations\ConversationFactory;
 use App\Infrastructure\Models\Currency;
 use App\Infrastructure\Models\UserAccount;
-use BotMan\BotMan\Messages\Conversations\Conversation;
 use BotMan\BotMan\Messages\Incoming\Answer;
 use BotMan\BotMan\Messages\Outgoing\Actions\Button;
 use BotMan\BotMan\Messages\Outgoing\Question;
-use Utils\Domain\UserBankManager;
 
 class ChangeCurrencyConversation extends Conversation
 {
-    protected UserAccount $userAccount;
+    private const CURRENCY_YES = 1;
+    private const CURRENCY_NO = 2;
 
-    public function __construct(UserAccount $userAccount)
-    {
+    protected UserAccount $userAccount;
+    protected ?Currency $currency;
+
+    public function __construct(
+        ConversationFactory $conversationFactory,
+        UserAccount $userAccount
+    ) {
+        parent::__construct($conversationFactory);
         $this->userAccount = $userAccount;
     }
 
-    public function askForConfirmation()
+    public function run(): void
+    {
+        $this->askForConfirmation();
+    }
+
+    public function askForConfirmation(): void
     {
         $code = $this->userAccount->bankAccount->currency->code;
         $balance = $this->userAccount->bankAccount->balance;
@@ -40,56 +52,67 @@ class ChangeCurrencyConversation extends Conversation
                 Button::create('2.No')->value(2),
             ]);
 
-        $this->ask($question, function (Answer $answer) {
-            $selectedValue = (int) $answer->getText();
-
-            // Detect if button was clicked:
-            if ($answer->isInteractiveMessageReply()) {
-                $selectedValue = (int) $answer->getValue();
-            }
-
-            if ($selectedValue !== 1 && $selectedValue !== 2) {
-                $this->say("Invalid option");
-                return $this->repeat();
-            }
-
-            // Yes
-            if ($selectedValue === 1) {
-                return $this->askForNewCurrency();
-            }
-
-            return $this->bot->startConversation(new MenuConversation($this->userAccount));
-        });
+        $this->ask($question, fn (Answer $answer) => $this->askForConfirmationAnswer($answer));
     }
 
-    public function askForNewCurrency()
+    public function askForConfirmationAnswer(Answer $answer): void
     {
-        $this->ask('Please inform the currency code (eg. USD, EUR, BRL)', function (Answer $answer) {
-            $currencyCode = strtoupper(trim($answer->getText()));
+        $selectedValue = (int) $answer->getText();
 
-            if (strlen($currencyCode) !== 3) {
-                $this->say("Currency codes have exactly 3 characters");
-                return $this->repeat();
-            }
+        if ($this->buttonWasPressed($answer)) {
+            $selectedValue = (int) $answer->getValue();
+        }
 
-            $this->currency = Currency::findByCode($currencyCode);
+        if ($selectedValue !== self::CURRENCY_YES && $selectedValue !== self::CURRENCY_NO) {
+            $this->say("Invalid option");
+            $this->repeat();
+            return;
+        }
 
-            if (!$this->currency) {
-                $this->say("We don't work with this currency yet, sorry.");
-                return $this->repeat();
-            }
-
-            if ($this->userAccount->bankAccount->currency->id === $this->currency->id) {
-                $this->say("This is already your account currency");
-                return $this->repeat();
-            }
-
-            return $this->exchangeBalance();
-        });
+        $selectedValue === self::CURRENCY_YES
+            ? $this->askForNewCurrency()
+            : $this->startMenuConversation($this->userAccount);
     }
 
-    public function exchangeBalance()
+    public function askForNewCurrency(): void
     {
+        $this->ask(
+            'Please inform the currency code (eg. USD, EUR, BRL)',
+            fn (Answer $answer) => $this->askForNewCurrencyAnswer($answer)
+        );
+    }
+
+    public function askForNewCurrencyAnswer(Answer $answer): void
+    {
+        $currencyCode = strtoupper(trim($answer->getText()));
+
+        if (strlen($currencyCode) !== 3) {
+            $this->say("Currency codes have exactly 3 characters");
+            $this->repeat();
+            return;
+        }
+
+        // TODO: Change this to a repository
+        $this->currency = Currency::findByCode($currencyCode);
+
+        if (!$this->currency) {
+            $this->say("We don't work with this currency yet, sorry.");
+            $this->repeat();
+            return;
+        }
+
+        if ($this->userAccount->bankAccount->currency->id === $this->currency->id) {
+            $this->say("This is already your account currency");
+            $this->repeat();
+            return;
+        }
+
+        $this->exchangeBalance();
+    }
+
+    public function exchangeBalance(): void
+    {
+        // TODO: Change this to a service
         $userBankManager = new UserBankManager($this->userAccount);
         $userBankManager->setDefaultCurrency($this->currency);
 
@@ -99,11 +122,6 @@ class ChangeCurrencyConversation extends Conversation
 
         $this->say("All done! Your balance now is $" . $balance . " $code");
 
-        return $this->bot->startConversation(new MenuConversation($this->userAccount));
-    }
-
-    public function run()
-    {
-        $this->askForConfirmation();
+        $this->startMenuConversation($this->userAccount);
     }
 }
