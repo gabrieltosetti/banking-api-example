@@ -7,6 +7,7 @@ use App\Infrastructure\Models\UserAccount;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Ramsey\Uuid\Uuid;
 
 class BankAccountSeeder extends Seeder
 {
@@ -20,6 +21,7 @@ class BankAccountSeeder extends Seeder
         $now = Carbon::now()->format('Y-m-d H:i:s');
 
         DB::table('bank_accounts')->insert([
+            'external_id' => Uuid::uuid4()->toString(),
             'user_account_id' => UserAccount::where('email', 'user@email.com')->first()->id,
             'currency_id' => Currency::where('code', 'USD')->first()->id,
             'balance' => 100.0,

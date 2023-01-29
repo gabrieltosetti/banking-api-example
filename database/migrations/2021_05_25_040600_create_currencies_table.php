@@ -15,6 +15,7 @@ class CreateCurrenciesTable extends Migration
     {
         Schema::create('currencies', function (Blueprint $table) {
             $table->id();
+            $table->uuid('external_id')->unique('external_id_unique')->index('external_id_index');
             $table->string('code', 3)->unique()->nullable(false);
             $table->string('description', 100);
             $table->timestamps();

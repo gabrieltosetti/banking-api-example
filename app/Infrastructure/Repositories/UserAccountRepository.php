@@ -4,22 +4,21 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Repositories;
 
+use App\Domain\DataAccessObjects\UserAccountDAOInterface;
+use App\Domain\Entities\UserAccountEntity;
 use App\Domain\Repositories\UserAccountRepositoryInterface;
-use App\Infrastructure\Models\UserAccount;
 
-/**
- * @inherits AbstractRepository<UserAccount>
- * @property UserAccount $model
- */
 class UserAccountRepository extends AbstractRepository implements UserAccountRepositoryInterface
 {
-    public function __construct(UserAccount $userAccountModel)
+    private UserAccountDAOInterface $userAccountDAO;
+
+    public function __construct(UserAccountDAOInterface $userAccountDAO)
     {
-        parent::__construct($userAccountModel);
+        $this->userAccountDAO = $userAccountDAO;
     }
 
-    public function findByEmail(string $email): ?UserAccount
+    public function findByEmail(string $email): ?UserAccountEntity
     {
-        return $this->model->newQuery()->where('email', $email)->first();
+        return $this->userAccountDAO->findByEmail($email);
     }
 }

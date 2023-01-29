@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Conversations\Menu;
 
 use App\Domain\Utils\UserBankManager;
-use App\Infrastructure\Conversations\Conversation;
+use App\Infrastructure\Conversations\AbstractConversation;
 use App\Infrastructure\Conversations\ConversationFactory;
 use App\Infrastructure\Models\Currency;
 use App\Infrastructure\Models\UserAccount;
@@ -13,7 +13,7 @@ use BotMan\BotMan\Messages\Incoming\Answer;
 use BotMan\BotMan\Messages\Outgoing\Actions\Button;
 use BotMan\BotMan\Messages\Outgoing\Question;
 
-class WithdrawConversation extends Conversation
+class WithdrawConversation extends AbstractConversation
 {
     private const CURRENCY_YES = 1;
     private const CURRENCY_NO = 2;

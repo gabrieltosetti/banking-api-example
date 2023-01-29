@@ -15,6 +15,7 @@ class CreateUserAccountsTable extends Migration
     {
         Schema::create('user_accounts', function (Blueprint $table) {
             $table->id();
+            $table->uuid('external_id')->unique('external_id_unique')->index('external_id_index');
             $table->string('name', 50);
             $table->string('email', 100)->unique();
             $table->string('password');

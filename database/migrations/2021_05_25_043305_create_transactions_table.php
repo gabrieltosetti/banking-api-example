@@ -15,6 +15,7 @@ class CreateTransactionsTable extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
+            $table->uuid('external_id')->unique('external_id_unique')->index('external_id_index');
             $table->foreignId('bank_account_id')->nullable(false)->constrained();
             $table->foreignId('bank_account_currency_id')->nullable(false)->constrained('currencies');
             $table->foreignId('target_currency_id')->nullable(false)->constrained('currencies');

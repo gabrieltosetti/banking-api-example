@@ -4,26 +4,27 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Conversations;
 
-use App\Infrastructure\Models\UserAccount;
+use App\Domain\Builders\BankAccountEntityBuilder;
 use BotMan\BotMan\Messages\Incoming\Answer;
 use BotMan\BotMan\Messages\Outgoing\Actions\Button;
 use BotMan\BotMan\Messages\Outgoing\Question;
 
-class MenuConversation extends Conversation
+class MenuConversation extends AbstractConversation
 {
-    protected UserAccount $userAccount;
+    protected array $bankAccountEntityArray;
 
-    private const BALANCE_CHOICE = 1;
-    private const DEPOSIT_CHOICE = 2;
-    private const WITHDRAW_CHOICE = 3;
-    private const CHANGE_CURRENCY_CHOICE = 4;
+    protected const BALANCE_CHOICE = 1;
+    protected const DEPOSIT_CHOICE = 2;
+    protected const WITHDRAW_CHOICE = 3;
+    protected const CHANGE_CURRENCY_CHOICE = 4;
 
     public function __construct(
         ConversationFactory $conversationFactory,
-        UserAccount $userAccount
+        BankAccountEntityBuilder $bankAccountEntityBuilder,
+        array $bankAccountEntityArray
     ) {
-        parent::__construct($conversationFactory);
-        $this->userAccount = $userAccount;
+        parent::__construct($conversationFactory, $bankAccountEntityBuilder);
+        $this->bankAccountEntityArray = $bankAccountEntityArray;
     }
 
     public function run(): void
@@ -56,16 +57,16 @@ class MenuConversation extends Conversation
 
         switch ($selectedValue) {
             case self::BALANCE_CHOICE:
-                $this->startBalanceConversation($this->userAccount);
+                $this->startBalanceConversation($this->bankAccountEntityArray);
                 break;
             case self::DEPOSIT_CHOICE:
-                $this->startdepositConversation($this->userAccount);
+                $this->startdepositConversation($this->bankAccountEntityArray);
                 break;
             case self::WITHDRAW_CHOICE:
-                $this->startWithdrawConversation($this->userAccount);
+                $this->startWithdrawConversation($this->bankAccountEntityArray);
                 break;
             case self::CHANGE_CURRENCY_CHOICE:
-                $this->startChangeCurrencyConversation($this->userAccount);
+                $this->startChangeCurrencyConversation($this->bankAccountEntityArray);
                 break;
             default:
                 $this->say("Sorry i don't know that option yet.");

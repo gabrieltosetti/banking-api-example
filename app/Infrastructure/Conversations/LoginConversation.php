@@ -4,22 +4,25 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Conversations;
 
-use App\Domain\Repositories\UserAccountRepositoryInterface;
-use App\Infrastructure\Models\UserAccount;
+use App\Domain\Builders\BankAccountEntityBuilder;
+use App\Domain\Entities\BankAccountEntity;
+use App\Domain\Repositories\BankAccountRepositoryInterface;
 use BotMan\BotMan\Messages\Incoming\Answer;
-use Illuminate\Support\Facades\Hash;
 
-class LoginConversation extends Conversation
+class LoginConversation extends AbstractConversation
 {
-    protected ?UserAccount $user = null;
-    protected UserAccountRepositoryInterface $userAccountRepository;
+    protected ?array $bankAccountEntityArray = null;
+    protected BankAccountRepositoryInterface $bankAccountRepository;
+    protected BankAccountEntityBuilder $bankAccountEntityBuilder;
 
     public function __construct(
         ConversationFactory $conversationFactory,
-        UserAccountRepositoryInterface $userAccountRepository
+        BankAccountRepositoryInterface $bankAccountRepository,
+        BankAccountEntityBuilder $bankAccountEntityBuilder
     ) {
         parent::__construct($conversationFactory);
-        $this->userAccountRepository = $userAccountRepository;
+        $this->bankAccountRepository = $bankAccountRepository;
+        $this->bankAccountEntityBuilder = $bankAccountEntityBuilder;
     }
 
     public function run(): void
@@ -32,7 +35,7 @@ class LoginConversation extends Conversation
     {
         $this->ask('Hello! What is your first name?', fn (Answer $answer) => $this->askFirstnameAnswer($answer));
     }
-    
+
     public function askFirstnameAnswer(Answer $answer): void
     {
         $name = $answer->getText();
@@ -55,9 +58,13 @@ class LoginConversation extends Conversation
             'email' => $email
         ]);
 
-        $this->user = $this->userAccountRepository->findByEmail($email);
+        try {
+            $this->bankAccountEntityArray = $this->bankAccountRepository->findByUserAccountEmail($email)->toArray();
+        } catch (\Throwable $e) {
+            if ($e->getCode() !== 404) {
+                throw $e;
+            }
 
-        if (!$this->user) {
             $this->say("I see that you don't have a account. Let's create one!");
             $this->startRegisterConversation();
             return;
@@ -75,13 +82,14 @@ class LoginConversation extends Conversation
     public function askForPasswordAnswer(Answer $answer): void
     {
         $password = $answer->getText();
+        $bankAccount = $this->bankAccountEntityBuilder->setFromArray($this->bankAccountEntityArray)->get();
 
-        if (!Hash::check($password, $this->user->password)) {
+        if (!$bankAccount->getUserAccount()->checkPassword($password)) {
             $this->say("Sorry, try again!");
             $this->repeat();
             return;
         }
 
-        $this->startMenuConversation($this->user);
+        $this->startMenuConversation($this->bankAccountEntityArray);
     }
 }

@@ -4,20 +4,23 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Conversations\Menu;
 
-use App\Infrastructure\Conversations\Conversation;
+use App\Domain\Builders\BankAccountEntityBuilder;
+use App\Infrastructure\Conversations\AbstractConversation;
 use App\Infrastructure\Conversations\ConversationFactory;
-use App\Infrastructure\Models\UserAccount;
 
-class BalanceConversation extends Conversation
+class BalanceConversation extends AbstractConversation
 {
-    protected UserAccount $userAccount;
+    protected array $bankAccountEntityArray;
+    protected BankAccountEntityBuilder $bankAccountEntityBuilder;
 
     public function __construct(
         ConversationFactory $conversationFactory,
-        UserAccount $userAccount
+        BankAccountEntityBuilder $bankAccountEntityBuilder,
+        array $bankAccountEntityArray
     ) {
         parent::__construct($conversationFactory);
-        $this->userAccount = $userAccount;
+        $this->bankAccountEntityBuilder = $bankAccountEntityBuilder;
+        $this->bankAccountEntityArray = $bankAccountEntityArray;
     }
 
     public function run()
@@ -27,12 +30,13 @@ class BalanceConversation extends Conversation
 
     public function showBalance()
     {
-        $code = $this->userAccount->bankAccount->currency->code;
-        $balance = $this->userAccount->bankAccount->balance;
+        $bankAccount = $this->bankAccountEntityBuilder->setFromArray($this->bankAccountEntityArray)->get();
+        $code = $bankAccount->getCurrency()->getCode();
+        $balance = $bankAccount->getBalance();
         $balance = number_format($balance, 2, ',', '.');
 
         $this->say("Your balance is $" . $balance . " $code");
 
-        $this->startMenuConversation($this->userAccount);
+        $this->startMenuConversation($this->bankAccountEntityArray);
     }
 }

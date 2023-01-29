@@ -15,6 +15,7 @@ class CreateBankAccountsTable extends Migration
     {
         Schema::create('bank_accounts', function (Blueprint $table) {
             $table->id();
+            $table->uuid('external_id')->unique('external_id_unique')->index('external_id_index');
             $table->foreignId('user_account_id')->nullable(false)->constrained();
             $table->foreignId('currency_id')->nullable(false)->constrained('currencies');
             $table->float('balance', 22, 2)->nullable(false)->default(0.0);

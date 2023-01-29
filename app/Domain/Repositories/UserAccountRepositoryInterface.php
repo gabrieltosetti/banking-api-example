@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Repositories;
 
-use App\Infrastructure\Models\UserAccount;
+use App\Domain\Entities\UserAccountEntity;
 
 interface UserAccountRepositoryInterface
 {
-    public function findByEmail(string $email): ?UserAccount;
+    public function findByEmail(string $email): ?UserAccountEntity;
 }

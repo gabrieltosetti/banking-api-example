@@ -4,31 +4,41 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Conversations\Menu;
 
+use App\Domain\Builders\BankAccountEntityBuilder;
+use App\Domain\Builders\CurrencyValueObjectBuilder;
 use App\Domain\Utils\UserBankManager;
-use App\Infrastructure\Conversations\Conversation;
+use App\Infrastructure\Conversations\AbstractConversation;
 use App\Infrastructure\Conversations\ConversationFactory;
-use App\Infrastructure\Models\Currency;
-use App\Infrastructure\Models\UserAccount;
+use App\Infrastructure\DataAccessObjects\CurrencyDAO;
 use BotMan\BotMan\Messages\Incoming\Answer;
 use BotMan\BotMan\Messages\Outgoing\Actions\Button;
 use BotMan\BotMan\Messages\Outgoing\Question;
 
-class DepositConversation extends Conversation
+class DepositConversation extends AbstractConversation
 {
     private const CURRENCY_YES = 1;
     private const CURRENCY_NO = 2;
 
-    protected UserAccount $userAccount;
-    protected ?Currency $currency;
+    protected BankAccountEntityBuilder $bankAccountEntityBuilder;
+    protected CurrencyValueObjectBuilder $currencyValueObjectBuilder;
+    protected CurrencyDAO $currencyDAO;
+
+    protected ?array $newCurrency;
+    protected array $bankAccountEntityArray;
     protected float $depositAmmount;
 
     public function __construct(
         ConversationFactory $conversationFactory,
-        UserAccount $userAccount
+        BankAccountEntityBuilder $bankAccountEntityBuilder,
+        CurrencyValueObjectBuilder $currencyValueObjectBuilder,
+        CurrencyDAO $currencyDAO,
+        array $bankAccountArray
     ) {
         parent::__construct($conversationFactory);
-        $this->userAccount = $userAccount;
-        $this->currency = $this->userAccount->bankAccount->currency;
+        $this->bankAccountEntityArray = $bankAccountArray;
+        $this->bankAccountEntityBuilder = $bankAccountEntityBuilder;
+        $this->currencyValueObjectBuilder = $currencyValueObjectBuilder;
+        $this->currencyDAO = $currencyDAO;
     }
 
     public function run(): void
@@ -38,9 +48,9 @@ class DepositConversation extends Conversation
 
     public function askForDepositAmmount(): void
     {
-        $code = $this->userAccount->bankAccount->currency->code;
-        $balance = $this->userAccount->bankAccount->balance;
-        $balance = number_format($balance, 2, ',', '.');
+        $bankAccount = $this->bankAccountEntityBuilder->setFromArray($this->bankAccountEntityArray)->get();
+        $code = $bankAccount->getCurrency()->getCode();
+        $balance = number_format($bankAccount->getBalance(), 2, ',', '.');
 
         $this->say("Your balance is $" . $balance . " $code");
 
@@ -75,8 +85,9 @@ class DepositConversation extends Conversation
 
     public function askToChangeCurrency(): void
     {
-        $code = $this->userAccount->bankAccount->currency->code;
-        $description = $this->userAccount->bankAccount->currency->description;
+        $bankAccount = $this->bankAccountEntityBuilder->setFromArray($this->bankAccountEntityArray)->get();
+        $code = $bankAccount->getCurrency()->getCode();
+        $description = $bankAccount->getCurrency()->getDescription();
 
         $question = Question::create("Your account is using $code ($description). Do you want to change it?")
             ->fallback('Invalid option')
@@ -126,10 +137,9 @@ class DepositConversation extends Conversation
             return;
         }
 
-        // TODO: Change this to a repository
-        $this->currency = Currency::findByCode($currencyCode);
-
-        if (!$this->currency) {
+        try {
+            $this->newCurrency = $this->currencyDAO->findByCode($currencyCode)->toArray();
+        } catch (\Throwable $e) {
             $this->say("We don't work with this currency yet, sorry.");
             $this->repeat();
             return;
@@ -141,15 +151,22 @@ class DepositConversation extends Conversation
     public function depositAmmount(): void
     {
         // TODO: Change this to a service
-        $userBankManager = new UserBankManager($this->userAccount);
-        $userBankManager->deposit($this->depositAmmount, $this->currency);
 
-        $code = $this->userAccount->bankAccount->currency->code;
-        $balance = $this->userAccount->bankAccount->balance;
-        $balance = number_format($balance, 2, ',', '.');
+        $bankAccount = $this->bankAccountEntityBuilder->setFromArray($this->bankAccountEntityArray)->get();
+        $targetCurrency = !empty($this->newCurrency)
+            ? $this->currencyValueObjectBuilder->setFromArray($this->newCurrency)->get()
+            : null;
+
+        $userBankManager = new UserBankManager();
+        $bankAccount = $userBankManager->deposit($bankAccount, $this->depositAmmount, $targetCurrency);
+
+        $this->bankAccountEntityArray = $bankAccount->toArray();
+
+        $code = $bankAccount->getCurrency()->getCode();
+        $balance = number_format($bankAccount->getBalance(), 2, ',', '.');
 
         $this->say("All done! Your balance now is $" . $balance . " $code");
 
-        $this->startMenuConversation($this->userAccount);
+        $this->startMenuConversation($this->bankAccountEntityArray);
     }
 }
