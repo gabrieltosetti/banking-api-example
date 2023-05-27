@@ -1,8 +1,5 @@
 FROM php:7.4-fpm
 
-# Copy composer.lock and composer.json
-COPY composer.lock composer.json /var/www/
-
 # Set working directory
 WORKDIR /var/www
 
@@ -14,10 +11,13 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     locales \
     zip \
-    jpegoptim optipng pngquant gifsicle libonig-dev libzip-dev \
-    vim \
+    jpegoptim \
+    optipng \
+    pngquant \
+    gifsicle \
+    libonig-dev \
+    libzip-dev \
     unzip \
-    git \
     curl
 
 # Clear cache
@@ -38,8 +38,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN groupadd -g 1000 www
 RUN useradd -u 1000 -ms /bin/bash -g www www
 
-# Copy existing application directory contents
-COPY . /var/www
+COPY ./docker/php/local.ini /usr/local/etc/php/conf.d/local.ini
 
 # Copy existing application directory permissions
 COPY --chown=www:www . /var/www
