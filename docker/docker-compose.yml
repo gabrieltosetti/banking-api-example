@@ -18,6 +18,8 @@ services:
       - static-content:/tmp
     networks:
       - app-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   #Nginx Service
   webserver:

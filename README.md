@@ -22,19 +22,19 @@ CURRENCY_CONVERTER_API_API_KEY=
 - Build and start the containers
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 - Install all the dependencies
 
 ```bash
-docker-compose exec app composer install
+docker compose exec app composer install
 ```
 
 - Migrate and seed the database
 
 ```bash
-docker-compose exec app php artisan migrate:fresh --seed
+docker compose exec app php artisan migrate:fresh --seed
 ```
 
-- Access `http://localhost:80` and start chatting
+- Access `http://localhost:8080` and start chatting
